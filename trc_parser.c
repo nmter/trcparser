@@ -16,7 +16,7 @@ output_stat_t output_stat = {
 trc_parser_t trc_parser = {
 	NULL,
 	NULL,
-	NULL,
+	NULL, NULL,
 	&output_stat,
 	&io_trace_generate
 };
@@ -151,28 +151,35 @@ md5list_t* _md5l_alloc_new(char *str, int num)
 	return head;
 }
 
-
-	
-
-void _perform_io(io_trace_t *x)//only for write
+void _perform_io_init()
 {
-	if(x->flag & PAGE_IS_ONLY){
-		return;//do nothing
-	}
-	char name[64];
-	strcpy(name, trc_parser.trc_file_name);
-	strcat(name, ".dedup");
-
-	if(!trc_parser.fp_output){
-		FILE * fp = fopen(name,"w+");
+	char *suffix[2] = {".dedup", ".org"};
+	char name[2][64];
+	int i = 0;
+	FILE *fp;
+	while(i < 2){
+		strcpy(name[i], trc_parser.trc_file_name);
+		strcat(name[i], suffix[i]);
+		fp = fopen(name[i],"w+");
 		if(!fp){
 			perror("output file open error!");
 			exit(-1);
 		}
-		trc_parser.fp_output = fp;
+		trc_parser.ofp[i] = fp;
+		i++;
+	}
+}
+	
+
+void _perform_io_to_file(io_trace_t *x, int which)
+{
+	FILE *fp;
+	fp = trc_parser.ofp[which];
+	if((which == PERFORM_DEDUP)&&(x->flag & PAGE_IS_ONLY)){
+			return;//do nothing
 	}
 	/*arr-time(ms) dev_num sec-addr size flag*/
-	fprintf(trc_parser.fp_output, "%f 0 %ld %d %d",x->iss_time * 1000,
+	fprintf(fp, "%f 0 %ld %d %d\n",x->iss_time * 1000,
 		x->st_blk, x->bcount, x->rw);//output the trace in the format that [disksim] can read
 }
 
@@ -250,12 +257,18 @@ void _io_trace_parser(char* line)
 	x_io.md5list = _md5l_alloc_new(line + magic_idx[5] + 1, x_io.bcount / 8);
 	//printf("%s\n",line + magic_idx[5] + 1);
 
-	this_x_io = &x_io;
+	this_x_io = &x_io;//only use in call back
+
+	_perform_io_to_file(&x_io, PERFORM_ORG);
+
 	if(x_io.rw){//if is write io
 		_md5l_push_into_rbt(x_io.md5list, &x_io);	
 	}
 	
-	//_perform_io(&x_io);
+	/*
+	 *	io after dedup is output. 
+	 */
+	_perform_io_to_file(&x_io, PERFORM_DEDUP);
 
 	/*
 	 *	some statistics collection
@@ -294,18 +307,21 @@ After Dedup\nw-io-tfc(MB):%d\nlast time(s):%f\nio number(-):%ld (w:%ld,%f)\n\n",
 
 void _closefiles()
 {
+	int i = 0;
 	if(trc_parser.fp){
 		fclose(trc_parser.fp);
 	}
-	if(trc_parser.fp_output){
-		fclose(trc_parser.fp_output);
+	while(i < 2){
+		if(trc_parser.ofp[i])
+			fclose(trc_parser.ofp[i]);
+		i++;
 	}
-
 }
 
 void io_trace_generate()
 {
 	char *line;
+	_perform_io_init();
 
 	while(1){
 		//printf("line: %d\n",i++);

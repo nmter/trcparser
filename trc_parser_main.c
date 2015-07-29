@@ -26,9 +26,9 @@ void test_rbt() // for key's type is int*
 	rbtree.rb_print();
 	rbtree.rb_destroy();
 }
-void test_trc_parser(char* argv)
+void test_trc_parser(char* filename)
 {
-	trc_parser.trc_file_name = argv;
+	trc_parser.trc_file_name = filename;
 	trc_parser.io_trace_generate();
 
 }

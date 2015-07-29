@@ -17,6 +17,9 @@ typedef unsigned int UINT32;
 #define A_WRSUM trc_parser.stat->nwr_after
 #define STIME trc_parser.stat->st_time
 #define EDTIME trc_parser.stat->ed_time
+#define PERFORM_DEDUP	0
+#define PERFORM_ORG		1
+
 
 
 typedef struct _output_stat_t{
@@ -51,7 +54,11 @@ typedef struct _iotrace_t{
 typedef struct _trc_parser_t{
 	char *trc_file_name;
 	FILE *fp;				//init to NULL
-	FILE *fp_output;
+	FILE *ofp[2];	/*	
+					 *  2 ouput fp:
+					 *	output after-dedup trace for disksim,
+					 *	output origin trace for disksim
+					 */
 	output_stat_t *stat;
 
 	void (*io_trace_generate)();
