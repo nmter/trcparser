@@ -345,5 +345,3 @@ void io_trace_generate()
 	_print_stat();
 	_closefiles();
 }
-
-
