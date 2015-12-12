@@ -1,6 +1,8 @@
 # trcparser
 a trace file parser
 ##开发需求
+0 使用py实现以下需求：
+
 1 基本需求 - 
 “分析负载的请求大小、IO密集度、局部性”
 
