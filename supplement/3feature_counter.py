@@ -1,13 +1,12 @@
+import os
+
 '''
-
-
-
-feature_dict_list['offset']
+0. trace_file ==> 3 tables
 	address		hit
 	0 - 1 M  	500
 	1 - 2 M		10
 	...
-	==>	GRAPH
+
 	
 trace_file
 	xxx xxx xxxx ....
@@ -15,22 +14,43 @@ trace_file
 	.....
 	xxx xxx xxxx ....
 '''
+def do_default():
+	print 'do nothing'
 
-
-def generate_dicts(xdict, ):
-
-def readline_trcf_(path):
-	'''
-	read one line,
-	'''
+def do_offset(xdict, words, ofs_band=1):
+	#default 1M-width.
+	#default no time-consideration.
+	time = words[0]
+	ofs = words[2]
 	
-def insert_feature_dict(xdict, xkey, which):
-	dict[1] = 4
-	print dict[1]
+	
+	print time, ofs
 
+def do_size(xdict, words):
+	print 'here is do_size'
+
+def do_IOPS(xdict, words):
+	print 'here is do_IOPS'
+	
+def generate_dicts():
+	for which in ['offset','size','IOPS']:
+		#the feature dict.
+		feature_dict = dict();
+		
+		#3 features' function
+		whichs = {
+					'offset': do_offset,
+					'size': do_size,
+					'IOPS': do_IOPS
+		}
+		
+		#open trace file & readline
+		fp = open("../../temp_file/wechat-6h.trace", 'r', -1)
+		for l in fp.readlines():
+			words = l.split()
+			if(len(words) == 7):
+				whichs.get(which, do_default)(feature_dict, words)
+		fp.close()
 
 if __name__ == '__main__':
-	feature_dict_list = {}
-	feature_dict_list['size'] = dict()
-	feature_dict_list['iops'] = dict()
-	feature_dict_list['offset'] = dict()
+	generate_dicts()
