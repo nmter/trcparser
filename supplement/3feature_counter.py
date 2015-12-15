@@ -102,9 +102,20 @@ def generate_dicts():
 				whichs.get(which, do_default)(feature_dict_lists[f_idx], words)
 		fp.close()
 		f_idx += 1
-	return 
+	return feature_dict_lists
+def display_dictlists(feature_dict_lists):
+	whichdictlist = ['offset','size','IOPS']
+	whichdict = ['read', 'write', 'all']
+	idx_diclist = 0
+	for i in feature_dict_lists:
+		print "====",whichdictlist[idx_diclist],"===="
+		idx_dict = 0
+		for j in i:
+			print "---",whichdict[idx_dict],"---"
+			display_dict(j, 'table')
+			idx_dict += 1
+		idx_diclist += 1
+
 if __name__ == '__main__':
-	generate_dicts()
-	for i in xdict_list:
-		print len(xdict_list)
-		display_dict(i, 'table')
+	feature_dict_lists = generate_dicts()
+	display_dictlists(feature_dict_lists)
