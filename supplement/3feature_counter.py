@@ -38,20 +38,42 @@ def do_offset_adjust_ofs_band():
 	'''
 	return 0
 
+def display_dict_in_tables_fp(xdict, fp, which):
+	'''
+	'''
+	#print 'xxxxx'
+	#print xdict.items() 
+	a = sorted(xdict.items(), lambda x,y:cmp(x[0],y[0])) #sorted by {key} in asc order
+	'''
+	if(which == 'offset'):
+		for x in range(a[len(a)-1][0] + 1):
+			if(xdict.has_key(x)):
+				fp.write(str(x)+' '+str(xdict[x])+'\n')
+			else:
+				fp.write(str(x)+' '+'0'+'\n')
+		return
+	'''
+	for i in a:
+		fp.write(str(i[0])+' '+str(i[1])+'\n')
+	#print 'tttttt'
 
 def display_dict_in_tables(xdict):
 	'''
 	'''
 	#print 'xxxxx'
 	#print xdict.items() 
-	print sorted(xdict.items(), lambda x,y:cmp(x[0],y[0])) #sorted by {key} in asc order
+	a = sorted(xdict.items(), lambda x,y:cmp(x[0],y[0])) #sorted by {key} in asc order
+	for i in a:
+		print i[0],",",i[1]
 	#print 'tttttt'
 	 
 	return 
 	
-def display_dict(xdict, way):
+def display_dict(xdict, way, fp=0, which=0):
 	if(way == 'table'):
 		display_dict_in_tables(xdict)
+	if(way == 'table_fp'):
+		display_dict_in_tables_fp(xdict, fp, which)
 
 
 def do_offset(xdict_list, words, ofs_band=1):
@@ -154,7 +176,24 @@ def do_IOPS_Avg(xdict_list, words, time_band=60):
 		else:
 			flists.Avg_IOPS_w += 1
 	
+def display_dictlists_fp(feature_dict_lists):
+	'''
+	'''
+	whichdictlist = ['offset','size','IOPS']
+	whichdict = ['read', 'write', 'all']
+	idx_diclist = 0
+	for i in feature_dict_lists:
+		#print "====",whichdictlist[idx_diclist],"===="
+		idx_dict = 0
+		for j in i:
+			#print "---",whichdict[idx_dict],"---"
+			fp=open('./'+whichdictlist[idx_diclist]+'_'+whichdict[idx_dict],"w+")
+			display_dict(j, 'table_fp', fp, whichdictlist[idx_diclist])
+			idx_dict += 1
+			fp.close()
+		idx_diclist += 1
 
+	
 def display_dictlists(feature_dict_lists):
 	'''
 	'''
@@ -193,7 +232,7 @@ def generate_dicts():
 		flists.Avg_size_a = 0
 		
 		#open trace file & readline
-		fp = open("../../temp_file/wechat-6h.trace", 'r', -1)
+		fp = open("../../temp_file/wechat-1h.trace", 'r', -1)
 		for l in fp.readlines():
 			words = l.split()
 			if(len(words) == 7):
@@ -203,4 +242,4 @@ def generate_dicts():
 
 if __name__ == '__main__':
 	generate_dicts()
-	display_dictlists(flists.feature_dict_lists)
+	display_dictlists_fp(flists.feature_dict_lists)
