@@ -76,7 +76,7 @@ def display_dict(xdict, way, fp=0, which=0):
 		display_dict_in_tables_fp(xdict, fp, which)
 
 
-def do_offset(xdict_list, words, ofs_band=1):
+def do_offset(xdict_list, words, ofs_band=10):
 	'''{ofs_band} MBytes-width.
 		default no time-consideration.
 		
@@ -109,10 +109,17 @@ def do_size_Cumulate(xdict_list, words, time_band=5):
 	'''
 	return 
 
-def do_size_Avg(xdict_list, words, time_band=60):
+def do_size_Avg(xdict_list, words, time_band=120):
 	'''almost the same as @def do_IOPS_Avg, if there any way in [PY] can implement template like c++???
 		here {size} is in kilo-bytes.
 	'''
+	if(words[1] == 'R'):
+		flists.Sum_read = flists.Sum_read + 1
+		flists.Sum_read_t = flists.Sum_read_t + float(words[3]) / 2
+	else:
+		flists.Sum_write = flists.Sum_write + 1
+		flists.Sum_write_t = flists.Sum_write_t + float(words[3]) / 2
+
 	time = float(words[0])
 	if((flists.rec_start - 0) < 0.0001):
 		flists.rec_start = time + 1
@@ -149,7 +156,7 @@ def do_IOPS_Cumulate(xdict_list, words, time_band=5):
 	time = words[0]
 	return
 
-def do_IOPS_Avg(xdict_list, words, time_band=60):
+def do_IOPS_Avg(xdict_list, words, time_band=120):
 	'''in {time_band} seconds.
 	'''
 	time = float(words[0])
@@ -160,9 +167,9 @@ def do_IOPS_Avg(xdict_list, words, time_band=60):
 		flists.rec_start = time + 1
 		
 		#insert
-		insert_dict_2tuple(xdict_list[0], time, flists.Avg_IOPS_r)#read
-		insert_dict_2tuple(xdict_list[1], time, flists.Avg_IOPS_w)#write
-		insert_dict_2tuple(xdict_list[2], time, flists.Avg_IOPS_a)#all
+		insert_dict_2tuple(xdict_list[0], time, flists.Avg_IOPS_r/time_band)#read
+		insert_dict_2tuple(xdict_list[1], time, flists.Avg_IOPS_w/time_band)#write
+		insert_dict_2tuple(xdict_list[2], time, flists.Avg_IOPS_a/time_band)#all
 		
 		#reset
 		flists.Avg_IOPS_r = 0
@@ -243,3 +250,4 @@ def generate_dicts():
 if __name__ == '__main__':
 	generate_dicts()
 	display_dictlists_fp(flists.feature_dict_lists)
+	print "Write_AVG_Size:", flists.Sum_write_t / flists.Sum_write ,"Read_AVG_Size:" , flists.Sum_read_t / flists.Sum_read
