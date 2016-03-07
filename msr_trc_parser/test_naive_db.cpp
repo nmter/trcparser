@@ -2,7 +2,12 @@
 #include <stdio.h>
 int main()
 {
-    
-    printf("1\n");
-    return 0;
+	naive_db *db = new naive_db_rbt();
+	record *ptr;
+	for(int i = 0; i < 20; i++){
+		ptr = db->ins(i);
+	}
+	delete db;
+	
+	return 0;
 }
