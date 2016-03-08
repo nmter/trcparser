@@ -13,6 +13,25 @@
 void _update_value(void* dest, int start_idx, int len, void* src){
     memcpy((void*)((char*)dest + start_idx), src, len);
 }
+
+void *get_field(void* value, const char *field_name){
+    //valid field: w_time | r_time | max_rsize | min_rsize | avg_rsize | std_rsize 
+    int rcd_idx[] = {0, 8, 16, 20, 24, 28, -1};
+    const char* valid[6] = {"w_", "r_", "ma", "mi", "av", "st"};
+    int i = 0;
+    for(i = 0; i < 6; i++)
+        if(valid[i][0] == field_name[0] && valid[i][1] == field_name[1] ){
+            break;
+        }
+    return rcd_idx[i] >= 0 ? (char*)value + rcd_idx[i] : 0; 
+}
+
+int is_new_ins(void* v_ptr){
+    ULL wt = *(ULL*)get_field(v_ptr, "w_time");
+    ULL rt = *(ULL*)get_field(v_ptr, "r_time");
+//    printf("w r %llu %llu %d\n", wt, rt, (wt + rt) == 0 ? 1 : 0);
+    return wt + rt == 0 ? 1 : 0;
+}
 /*
  * a record - <key, value>
  * key(id) | value                                                            |
@@ -146,7 +165,9 @@ private:
     void _l_rotate(rbt_node* x);
     void _r_rotate(rbt_node* x);
     void _travel_rbt_del(rbt_node* r);
+    void _travel_rbt_pr(rbt_node* r);
 public:
+    void travel_rbt_pr();
     naive_db_rbt();
     ~naive_db_rbt();
     record* search(ULL key);
@@ -154,12 +175,23 @@ public:
     int del(ULL key);
 };
 
+void naive_db_rbt::_travel_rbt_pr(rbt_node* r){
+    if(r){
+        printf("%llu\n", r->key);
+        _travel_rbt_pr(r->l);
+        _travel_rbt_pr(r->r);
+    }
+}
+void naive_db_rbt::travel_rbt_pr()
+{
+    _travel_rbt_pr(root);
+}
 void naive_db_rbt::_travel_rbt_del(rbt_node* r)
 {
     if(r){
         _travel_rbt_del(r->l);
         _travel_rbt_del(r->r);
-        printf("del key -  %llu\n", r->key);
+        //printf("del key -  %llu\n", r->key);
         delete r;
     }
 }
@@ -171,7 +203,7 @@ naive_db_rbt::naive_db_rbt()
 
 naive_db_rbt::~naive_db_rbt(){
     #ifdef DBG
-    printf("rbt's destructor.free(delete) all inserted nodes. \n");
+    printf("rbt's destructor.free(delete) %llu inserted nodes.\n", this->num);
     #endif
     //go through the whole rbtree.
     _travel_rbt_del(root);
@@ -207,6 +239,7 @@ void naive_db_rbt::_l_rotate(rbt_node* x)
     x->r = y->l;
     if(x->r)
         x->r->p = x;
+    y->p = x->p;    
     if(x->p){
         if(x == x->p->l)
             x->p->l = y;
@@ -311,12 +344,14 @@ record* naive_db_rbt::ins(ULL key)
         goto out;
     }
     tmp = new rbt_node(key);
+    this->num++;
     if(key > ptr->key)
         ptr->r = tmp;
     else
         ptr->l = tmp;
     tmp->p = ptr;
     _insert_fix(tmp);
+    ptr = tmp;
 out:
     this->root->set_black();
     return ptr;
