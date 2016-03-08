@@ -94,6 +94,7 @@ public:
     virtual record* search(ULL key) = 0;//pure virtual function
     virtual record* ins(ULL key) = 0;
     virtual int del(ULL key) = 0;
+    virtual void dump(const char *file_name) = 0;
     void nodes_number(){
         printf("db's nodes: %llu\n", num);
     }
@@ -166,6 +167,7 @@ private:
     void _r_rotate(rbt_node* x);
     void _travel_rbt_del(rbt_node* r);
     void _travel_rbt_pr(rbt_node* r);
+    void _travel_rbt_dump(rbt_node* r, FILE* fp);
 public:
     void travel_rbt_pr();
     naive_db_rbt();
@@ -173,7 +175,31 @@ public:
     record* search(ULL key);
     record* ins(ULL key);
     int del(ULL key);
+    void dump(const char *file_name);
 };
+int idx[6] = {0, 8, 16, 20, 24, 28};
+void naive_db_rbt::_travel_rbt_dump(rbt_node* r, FILE* fp)
+{
+    int i;
+    if(r){
+        fprintf(fp, "%llu;%llu %llu ", r->key, *(ULL*)(r->value + idx[0]), *(ULL*)(r->value + idx[1]));
+        for(i = 2; i < 6; i++){
+            fprintf(fp, "%d ", *(int*)(r->value + idx[i]));
+        }
+        fprintf(fp, "\n");
+        _travel_rbt_dump(r->l, fp);
+        _travel_rbt_dump(r->r, fp);
+    }
+}
+
+void naive_db_rbt::dump(const char *file_name)
+{
+    printf("dump records to file %s.\n", file_name);
+    
+    FILE* fp = fopen(file_name, "w+");
+    _travel_rbt_dump(root, fp);
+    fclose(fp);
+}
 
 void naive_db_rbt::_travel_rbt_pr(rbt_node* r){
     if(r){

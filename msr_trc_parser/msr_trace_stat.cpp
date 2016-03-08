@@ -145,6 +145,7 @@ int msr_getIO(FILE* fp)//a line from file to specified field
 int main(int argc, char* argv[])
 {
 	FILE* fp;
+	char dp_f_name[64]; 
 	int i = 0;
 	if(argc != 2){
 		help();
@@ -157,6 +158,12 @@ int main(int argc, char* argv[])
 		i++;
 	}
 	printf("---Number of IOs: %d, SUM blks %llu ,blks Repeat %llu---\n", i, blks_sum, blks_sum_before);
+	
+	strcpy(dp_f_name, argv[1]);
+	strcat(dp_f_name, ".db");
+
+	blk_db->dump(dp_f_name);
+	
 	delete blk_db;
 	fclose(fp);
 	return 0;
