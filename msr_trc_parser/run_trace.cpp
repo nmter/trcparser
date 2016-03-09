@@ -7,6 +7,7 @@
 
 unsigned long long blks_sum = 0;
 ULL io_num = 0;
+ULL io_num_be_split = 0;
 naive_db *blk_db_from_file = new naive_db_rbt();
 
 
@@ -60,7 +61,7 @@ int msr_getblks(ULL st_idx, int size, char rw)
 		if(last_rw_type < 0 || last_rw_type == rw_type){
 			r_idx++;
 		}else{
-			printf("%llu %llu %llu %d\n",io_num, l_idx, r_idx - 1, rw_type);
+			printf("%llu %llu %llu %d\n",io_num, l_idx, r_idx - 1, rw_type);//deliver io
 			l_idx = r_idx;
 			div_num++;
 		}
@@ -69,8 +70,10 @@ int msr_getblks(ULL st_idx, int size, char rw)
 		st_idx++;
 		blk_num--;
 	}
-	printf("%llu %llu %llu %d\n",io_num, l_idx, r_idx - 1, rw_type);
+	printf("%llu %llu %llu %d\n",io_num, l_idx, r_idx - 1, rw_type);//deliver io
 	printf("===IO %llu: %d, %d.\n",io_num, size / BLKSIZE ,div_num);
+	
+	io_num_be_split += div_num >= 1 ? 1 : 0;
 }
 
 int msr_getIO(FILE* fp)
@@ -145,7 +148,7 @@ int main(int argc, char* argv[])
 		io_num++;
 	}
 
-	printf("---Number of IOs: %llu\n", io_num);
+	printf("---Number of IOs: %llu, be splited: %llu\n", io_num, io_num_be_split);
 
 //	blk_db_from_file->travel_rbt_pr();
 //	
