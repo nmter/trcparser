@@ -8,9 +8,10 @@
 unsigned long long blks_sum = 0;
 ULL io_num = 0;
 ULL io_num_be_split = 0;
+ULL wr_t = 0;
 naive_db *blk_db_from_file = new naive_db_rbt();
 
-
+#define MAX(a, b) ((a) > (b) ? (a) : (b))
 /*
  * one IO --> It's blks will be mixed?
  */
@@ -47,9 +48,11 @@ int msr_getblks(ULL st_idx, int size, char rw)
 		//1. rw_intensity:
 		wt = *(ULL*)get_field(ptr->value, "w_");
 		rt = *(ULL*)get_field(ptr->value, "r_");
-	
+		
+		wr_t = MAX(MAX(wt,rt),wr_t);
 		//printf("%llu %llu\n", wt, rt);
-
+		
+		
 		if((dev = rt == 0 ? 10.0 : (double) wt / (double)rt) > 9.0){
 			rw_type = 0;
 		}else if(dev < 0.11){
@@ -58,10 +61,12 @@ int msr_getblks(ULL st_idx, int size, char rw)
 			rw_type = 2;
 		}
 
+		
+		
 		if(last_rw_type < 0 || last_rw_type == rw_type){
 			r_idx++;
 		}else{
-			//printf("%llu %llu %llu %d\n",io_num, l_idx, r_idx - 1, rw_type);//deliver io
+			//printf("%llu %llu %llu %d\n",io_num, l_idx, r_idx - 1, rw_type);//===>deliver io
 			l_idx = r_idx;
 			div_num++;
 		}
@@ -70,8 +75,9 @@ int msr_getblks(ULL st_idx, int size, char rw)
 		st_idx++;
 		blk_num--;
 	}
-	//printf("%llu %llu %llu %d\n",io_num, l_idx, r_idx - 1, rw_type);//deliver io
-	printf("===IO %llu: %d, %d.\n",io_num, size / BLKSIZE ,div_num);
+	//printf("%llu %llu %llu %d\n",io_num, l_idx, r_idx - 1, rw_type);//===>deliver io
+	if(div_num)
+		printf("===IO %llu: %d, %d.\n",io_num, size / BLKSIZE ,div_num);
 	
 	io_num_be_split += div_num >= 1 ? 1 : 0;
 }
@@ -149,8 +155,11 @@ int main(int argc, char* argv[])
 		io_num++;
 	}
 
-	printf("---Number of IOs: %llu, be splited: %llu\n", io_num, io_num_be_split);
-
+	printf("---Number of IOs: %llu, be splited: %llu, \n", io_num, io_num_be_split);
+	printf("MAX wr_t %llu.\n", wr_t);
+	
+	delete blk_db_from_file;
+	return 0;
 //	blk_db_from_file->travel_rbt_pr();
 //	
 }

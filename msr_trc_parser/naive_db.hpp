@@ -201,8 +201,7 @@ void naive_db_rbt::rebuild_from(const char *file_name)
     record *ptr;
     while(fscanf(fp, "%llu%llu%llu%d%d%d%d", &k, &buf.wt, &buf.rt, &buf.ma, &buf.mi,
      &buf.av, &buf.st) != EOF){
-		printf("%llu %llu %llu %d %d %d %d\n", k, buf.wt, buf.rt, buf.ma, buf.mi,
-     buf.av, buf.st);
+		//printf("%llu %llu %llu %d %d %d %d\n", k, buf.wt, buf.rt, buf.ma, buf.mi,buf.av, buf.st);
         ptr = this->ins(k);
         if(is_new_ins((void*)ptr->value)){
             _update_value((void*)ptr->value, 0, 32, (void*)&buf);
