@@ -46,6 +46,8 @@ int msr_getblks(ULL st_idx, int size, char rw)
 		//1. rw_intensity:
 		wt = *(ULL*)get_field(ptr->value, "w_");
 		rt = *(ULL*)get_field(ptr->value, "r_");
+	
+		printf("%llu %llu\n", wt, rt);
 
 		if((dev = rt == 0 ? 10.0 : (double) wt / (double)rt) > 9.0){
 			rw_type = 0;
