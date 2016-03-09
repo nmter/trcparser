@@ -61,7 +61,7 @@ int msr_getblks(ULL st_idx, int size, char rw)
 		if(last_rw_type < 0 || last_rw_type == rw_type){
 			r_idx++;
 		}else{
-			printf("%llu %llu %llu %d\n",io_num, l_idx, r_idx - 1, rw_type);//deliver io
+			//printf("%llu %llu %llu %d\n",io_num, l_idx, r_idx - 1, rw_type);//deliver io
 			l_idx = r_idx;
 			div_num++;
 		}
@@ -70,8 +70,8 @@ int msr_getblks(ULL st_idx, int size, char rw)
 		st_idx++;
 		blk_num--;
 	}
-	printf("%llu %llu %llu %d\n",io_num, l_idx, r_idx - 1, rw_type);//deliver io
-	printf("===IO %llu: %d, %d.\n",io_num, size / BLKSIZE ,div_num);
+	//printf("%llu %llu %llu %d\n",io_num, l_idx, r_idx - 1, rw_type);//deliver io
+	//printf("===IO %llu: %d, %d.\n",io_num, size / BLKSIZE ,div_num);
 	
 	io_num_be_split += div_num >= 1 ? 1 : 0;
 }
