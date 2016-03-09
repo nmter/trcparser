@@ -48,7 +48,7 @@ int msr_getblks(ULL st_idx, int size, char rw)
 		wt = *(ULL*)get_field(ptr->value, "w_");
 		rt = *(ULL*)get_field(ptr->value, "r_");
 	
-		printf("%llu %llu\n", wt, rt);
+		//printf("%llu %llu\n", wt, rt);
 
 		if((dev = rt == 0 ? 10.0 : (double) wt / (double)rt) > 9.0){
 			rw_type = 0;
@@ -71,7 +71,7 @@ int msr_getblks(ULL st_idx, int size, char rw)
 		blk_num--;
 	}
 	//printf("%llu %llu %llu %d\n",io_num, l_idx, r_idx - 1, rw_type);//deliver io
-	//printf("===IO %llu: %d, %d.\n",io_num, size / BLKSIZE ,div_num);
+	printf("===IO %llu: %d, %d.\n",io_num, size / BLKSIZE ,div_num);
 	
 	io_num_be_split += div_num >= 1 ? 1 : 0;
 }
