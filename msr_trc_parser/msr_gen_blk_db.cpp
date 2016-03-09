@@ -23,7 +23,7 @@ char* strval_LN(LARGENUM *x){
 
 void help()
 {
-	printf("run: ./trcstatMSR trace_file_name\n");
+	printf("run: ./msr_gen_blk_db trace_file_name\n");
 }
 
 
@@ -149,6 +149,7 @@ int main(int argc, char* argv[])
 	int i = 0;
 	if(argc != 2){
 		help();
+		return -1;
 	}
 	if((fp = fopen(argv[1], "r")) == NULL){
 		perror(argv[1]);

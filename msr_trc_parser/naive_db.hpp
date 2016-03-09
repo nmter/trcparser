@@ -95,6 +95,8 @@ public:
     virtual record* ins(ULL key) = 0;
     virtual int del(ULL key) = 0;
     virtual void dump(const char *file_name) = 0;
+    virtual void rebuild_from(const char *file_name) = 0;//rebuild from dump file.
+    virtual void travel_rbt_pr() = 0;
     void nodes_number(){
         printf("db's nodes: %llu\n", num);
     }
@@ -168,21 +170,42 @@ private:
     void _travel_rbt_del(rbt_node* r);
     void _travel_rbt_pr(rbt_node* r);
     void _travel_rbt_dump(rbt_node* r, FILE* fp);
-public:
-    void travel_rbt_pr();
+public: 
     naive_db_rbt();
     ~naive_db_rbt();
     record* search(ULL key);
     record* ins(ULL key);
     int del(ULL key);
     void dump(const char *file_name);
+    void rebuild_from(const char *file_name);//rebuild from dump file.
+    void travel_rbt_pr();
 };
+
+void naive_db_rbt::rebuild_from(const char *file_name)
+{
+    ULL rcd_num = 0;
+    ULL k;
+    char buf[32];
+    FILE *fp = fopen(file_name, "r");
+    record *ptr;
+    while(fscanf(fp, "%llu%llu%llu%d%d%d%d", &k, &buf + 0, &buf + 8, &buf + 16, &buf + 20,
+     &buf + 24, &buf + 28) != EOF){
+        ptr = this->ins(k);
+        if(is_new_ins((void*)ptr->value)){
+            _update_value((void*)ptr->value, 0, 32, (void*)buf);
+        }
+        rcd_num++;
+    }
+    fclose(fp);
+}
+
+
 int idx[6] = {0, 8, 16, 20, 24, 28};
 void naive_db_rbt::_travel_rbt_dump(rbt_node* r, FILE* fp)
 {
     int i;
     if(r){
-        fprintf(fp, "%llu;%llu %llu ", r->key, *(ULL*)(r->value + idx[0]), *(ULL*)(r->value + idx[1]));
+        fprintf(fp, "%llu %llu %llu ", r->key, *(ULL*)(r->value + idx[0]), *(ULL*)(r->value + idx[1]));
         for(i = 2; i < 6; i++){
             fprintf(fp, "%d ", *(int*)(r->value + idx[i]));
         }
@@ -195,7 +218,7 @@ void naive_db_rbt::_travel_rbt_dump(rbt_node* r, FILE* fp)
 void naive_db_rbt::dump(const char *file_name)
 {
     printf("dump records to file %s.\n", file_name);
-    
+
     FILE* fp = fopen(file_name, "w+");
     _travel_rbt_dump(root, fp);
     fclose(fp);
@@ -297,12 +320,13 @@ void naive_db_rbt::_r_rotate(rbt_node* x)
     y->r = x;
     x->p = y;
 }
-
+ULL _db_sum_ad_time = 0;
 void naive_db_rbt::_insert_fix(rbt_node* x)
 {
     rbt_node *pa = x->p, *u;//parent, uncle
     while(pa && (!pa->get_color())){
         //p is red.
+        _db_sum_ad_time++;
         if(pa == pa->p->l){
             u = pa->p->r;
             if(u && (!u->get_color())){
