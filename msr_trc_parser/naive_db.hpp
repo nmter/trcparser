@@ -190,12 +190,18 @@ void naive_db_rbt::rebuild_from(const char *file_name)
     record *ptr;
     while(fscanf(fp, "%llu%llu%llu%d%d%d%d", &k, &buf + 0, &buf + 8, &buf + 16, &buf + 20,
      &buf + 24, &buf + 28) != EOF){
+		printf("%llu %llu %llu %d %d %d %d\n", k, *(ULL*)&buf + 0, *(ULL*)&buf + 8, *(int*)&buf + 16, *(int*)&buf + 20,
+     *(int*)&buf + 24, *(int*)&buf + 28);
         ptr = this->ins(k);
         if(is_new_ins((void*)ptr->value)){
             _update_value((void*)ptr->value, 0, 32, (void*)buf);
         }
         rcd_num++;
     }
+	
+	printf("====\n");
+//	this->travel_rbt_pr();
+	
     fclose(fp);
 }
 
@@ -226,7 +232,7 @@ void naive_db_rbt::dump(const char *file_name)
 
 void naive_db_rbt::_travel_rbt_pr(rbt_node* r){
     if(r){
-        printf("%llu\n", r->key);
+        printf("%llu %llu %llu\n", r->key, *(ULL*)get_field(r->value, "w_"), *(ULL*)get_field(r->value, "w_"));
         _travel_rbt_pr(r->l);
         _travel_rbt_pr(r->r);
     }

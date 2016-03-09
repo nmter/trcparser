@@ -3,19 +3,13 @@
 int main()
 {
 	naive_db_rbt *db = new naive_db_rbt();
-//	record *ptr;
+	record *ptr;
 	ULL tmp = 0;
-//	FILE* fp = freopen("1.input", "r", stdin);
-//	while(scanf("%llu", &tmp) != EOF){
-		if(tmp == 5548077057){
-			printf("!!!\n");
-		}
-		printf("%llu.\n", tmp);
-//		db->ins(tmp);
-		
-//		db->travel_rbt_pr();
-//	}
-//	fclose(fp);
+//	FILE* fp = fopen("1.input", "r");
+	
+	db->rebuild_from("1.input");
+	db->nodes_number();
+	
 	delete db;
 
 	return 0;
