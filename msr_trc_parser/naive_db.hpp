@@ -199,7 +199,7 @@ void naive_db_rbt::rebuild_from(const char *file_name)
         rcd_num++;
     }
 	
-	printf("====\n");
+//	printf("====\n");
 //	this->travel_rbt_pr();
 	
     fclose(fp);

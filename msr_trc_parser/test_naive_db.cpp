@@ -8,7 +8,7 @@ int main()
 //	FILE* fp = fopen("1.input", "r");
 	
 	db->rebuild_from("1.input");
-	db->nodes_number();
+//	db->nodes_number();
 	
 	delete db;
 
