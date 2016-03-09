@@ -10,6 +10,8 @@
 #include <stdio.h>
 #include <malloc.h>
 #include <string.h>
+
+
 void _update_value(void* dest, int start_idx, int len, void* src){
     memcpy((void*)((char*)dest + start_idx), src, len);
 }
@@ -181,20 +183,29 @@ public:
     void travel_rbt_pr();
 };
 
+struct value_t{
+	ULL wt;
+	ULL rt;
+	int ma;
+	int mi;
+	int av;
+	int st;
+}value_t;
+
 void naive_db_rbt::rebuild_from(const char *file_name)
 {
     ULL rcd_num = 0;
     ULL k;
-    char buf[32];
+    struct value_t buf;
     FILE *fp = fopen(file_name, "r");
     record *ptr;
-    while(fscanf(fp, "%llu%llu%llu%d%d%d%d", &k, &buf + 0, &buf + 8, &buf + 16, &buf + 20,
-     &buf + 24, &buf + 28) != EOF){
-		printf("%llu %llu %llu %d %d %d %d\n", k, *(ULL*)&buf + 0, *(ULL*)&buf + 8, *(int*)&buf + 16, *(int*)&buf + 20,
-     *(int*)&buf + 24, *(int*)&buf + 28);
+    while(fscanf(fp, "%llu%llu%llu%d%d%d%d", &k, &buf.wt, &buf.rt, &buf.ma, &buf.mi,
+     &buf.av, &buf.st) != EOF){
+		printf("%llu %llu %llu %d %d %d %d\n", k, buf.wt, buf.rt, buf.ma, buf.mi,
+     buf.av, buf.st);
         ptr = this->ins(k);
         if(is_new_ins((void*)ptr->value)){
-            _update_value((void*)ptr->value, 0, 32, (void*)buf);
+            _update_value((void*)ptr->value, 0, 32, (void*)&buf);
         }
         rcd_num++;
     }
