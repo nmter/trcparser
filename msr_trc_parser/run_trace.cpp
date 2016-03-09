@@ -133,9 +133,10 @@ int main(int argc, char* argv[])
 		return -1;
 	}
 	fclose(fp);
-	
+
+	printf("rebuild db from %s...\n", argv[1]);	
 	blk_db_from_file->rebuild_from(argv[1]);
-	printf("rebuild ok.\n");
+
 	blk_db_from_file->nodes_number();
 
 	if((fp = fopen(argv[2], "r")) == NULL){//trace_file
