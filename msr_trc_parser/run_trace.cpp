@@ -8,6 +8,7 @@
 unsigned long long blks_sum = 0;
 ULL io_num = 0;
 ULL io_num_be_split = 0;
+ULL no_zero_std = 0;
 ULL wr_t = 0;
 naive_db *blk_db_from_file = new naive_db_rbt();
 
@@ -21,7 +22,7 @@ int msr_getblks(ULL st_idx, int size, char rw)
 	unsigned long long mask;
 	int blk_num, div_num;
 	ULL l_idx, r_idx;//window's l,r
-	ULL wt, rt;
+	ULL wt, rt, st, ma, mi;
 	double dev;
 	int rw_type, last_rw_type;
 	/*
@@ -48,6 +49,15 @@ int msr_getblks(ULL st_idx, int size, char rw)
 		//1. rw_intensity:
 		wt = *(ULL*)get_field(ptr->value, "w_");
 		rt = *(ULL*)get_field(ptr->value, "r_");
+		ma = *(int*)get_field(ptr->value, "ma");
+		mi = *(int*)get_field(ptr->value, "mi");
+		st = *(int*)get_field(ptr->value, "st");
+		
+		
+		if(st){
+			printf("%d %d %d\n",ma, mi, ma - mi);
+		}
+		
 		
 		wr_t = MAX(MAX(wt,rt),wr_t);
 		//printf("%llu %llu\n", wt, rt);
@@ -76,9 +86,10 @@ int msr_getblks(ULL st_idx, int size, char rw)
 		blk_num--;
 	}
 	//printf("%llu %llu %llu %d\n",io_num, l_idx, r_idx - 1, rw_type);//===>deliver io
-	if(div_num)
+/*
+	if(div_num)//output the spilted_num
 		printf("===IO %llu: %d, %d.\n",io_num, size / BLKSIZE ,div_num);
-	
+*/	
 	io_num_be_split += div_num >= 1 ? 1 : 0;
 }
 
