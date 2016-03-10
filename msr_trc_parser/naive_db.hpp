@@ -221,9 +221,9 @@ void naive_db_rbt::_travel_rbt_dump(rbt_node* r, FILE* fp)
 {
     int i;
     if(r){
-        fprintf(fp, "%llu %llu %llu ", r->key, *(ULL*)(r->value + idx[0]), *(ULL*)(r->value + idx[1]));
+        fprintf(fp, "%llu %llu %llu ", r->key, *(ULL*)(r->value + idx[0]), *(ULL*)(r->value + idx[1]));//@
         for(i = 2; i < 6; i++){
-            fprintf(fp, "%d ", *(int*)(r->value + idx[i]));
+            fprintf(fp, "%d ", *(int*)(r->value + idx[i]));//@
         }
         fprintf(fp, "\n");
         _travel_rbt_dump(r->l, fp);
