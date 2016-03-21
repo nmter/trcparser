@@ -11,6 +11,29 @@
 #include <malloc.h>
 #include <string.h>
 
+struct value_t{
+	ULL wt;
+	ULL rt;
+	int ma;
+	int mi;
+	int av;
+	int st;
+}value_t;
+
+#define VAL_LEN (sizeof(struct value_t))
+
+
+int is_wi_ri(void* value){
+	struct value_t *v_ptr = (struct value_t *)value;
+	double dev;
+	if((dev = v_ptr->rt == 0 ? 10.0 : (double)v_ptr->wt / (double)v_ptr->rt) > 9.0){
+		return 0;
+	}else if(dev < 0.11){
+		return 1;
+	}else{
+		return 2;
+	}
+}
 
 void _update_value(void* dest, int start_idx, int len, void* src){
     memcpy((void*)((char*)dest + start_idx), src, len);
@@ -56,23 +79,23 @@ public:
 record::record()
 {
     key = 0;
-    value = new char[32];
-    memset(value, 0, sizeof(char)*32);
+    value = new char[VAL_LEN];
+    memset(value, 0, sizeof(char) * VAL_LEN);
 }
 record::record(ULL key)
 {
     this->key = key;
-    value = new char[32];
-    memset(value, 0, sizeof(char)*32);
+    value = new char[VAL_LEN];
+    memset(value, 0, sizeof(char) * VAL_LEN);
 }
 record::record(ULL key, void* v_ptr)
 {
     this->key = key;
-    value = new char[32];//copy
+    value = new char[VAL_LEN];//copy
     if(v_ptr)
-        memcpy((void*)value, v_ptr, 32);
+        memcpy((void*)value, v_ptr, VAL_LEN);
     else
-        memset(value, 0, sizeof(char)*32);
+        memset(value, 0, sizeof(char) * VAL_LEN);
 }
 record::~record()
 {
@@ -164,6 +187,9 @@ rbt_node::~rbt_node()
 class naive_db_rbt : public naive_db
 {
 private:
+	ULL ri_num;
+	ULL wi_num;
+	ULL no_zero_std;
     rbt_node* root;
     void _insert_fix(rbt_node* x);
     rbt_node* _search(ULL key);
@@ -183,14 +209,6 @@ public:
     void travel_rbt_pr();
 };
 
-struct value_t{
-	ULL wt;
-	ULL rt;
-	int ma;
-	int mi;
-	int av;
-	int st;
-}value_t;
 
 void naive_db_rbt::rebuild_from(const char *file_name)
 {
@@ -233,7 +251,7 @@ void naive_db_rbt::_travel_rbt_dump(rbt_node* r, FILE* fp)
 
 void naive_db_rbt::dump(const char *file_name)
 {
-    printf("dump records to file %s.\n", file_name);
+//    printf("dump records to file %s.\n", file_name);
 
     FILE* fp = fopen(file_name, "w+");
     _travel_rbt_dump(root, fp);
@@ -242,14 +260,20 @@ void naive_db_rbt::dump(const char *file_name)
 
 void naive_db_rbt::_travel_rbt_pr(rbt_node* r){
     if(r){
-        printf("%llu %llu %llu\n", r->key, *(ULL*)get_field(r->value, "w_"), *(ULL*)get_field(r->value, "w_"));
+//        printf("%llu %llu %llu\n", r->key, *(ULL*)get_field(r->value, "w_"), *(ULL*)get_field(r->value, "w_"));
+		wi_num += is_wi_ri(r->value) == 0 ? 1 : 0;
+		ri_num += is_wi_ri(r->value) == 1 ? 1 : 0;
+		no_zero_std += ((struct value_t*)r->value)->st == 0 ? 0 : 1; 
         _travel_rbt_pr(r->l);
         _travel_rbt_pr(r->r);
     }
 }
 void naive_db_rbt::travel_rbt_pr()
 {
+	wi_num = ri_num = no_zero_std= 0;
     _travel_rbt_pr(root);
+	//printf("sum: %llu,write_intensive: %llu, read_intensive: %llu, mixed: %llu\n",num , wi_num, ri_num, num - wi_num - ri_num);
+	printf("%llu:%llu:%llu:%llu\n",num , wi_num, ri_num, num - wi_num - ri_num);
 }
 void naive_db_rbt::_travel_rbt_del(rbt_node* r)
 {
@@ -268,7 +292,7 @@ naive_db_rbt::naive_db_rbt()
 
 naive_db_rbt::~naive_db_rbt(){
     #ifdef DBG
-    printf("rbt's destructor.free(delete) %llu inserted nodes.\n", this->num);
+//    printf("rbt's destructor.free(delete) %llu inserted nodes.\n", this->num);
     #endif
     //go through the whole rbtree.
     _travel_rbt_del(root);

@@ -82,7 +82,8 @@ int msr_toIOblks(LARGENUM *ofs, int size, char rw)
 			}else{
 			//not new.
 				*(int *)get_field(rcd_ptr->value, "max_rsize") = size > *(int *)get_field(rcd_ptr->value, "max_rsize") ? size : *(int *)get_field(rcd_ptr->value, "max_rsize");
-				*(int *)get_field(rcd_ptr->value, "min_rsize") = size < *(int *)get_field(rcd_ptr->value, "min_rsize") ? size : *(int *)get_field(rcd_ptr->value, "min_rsize");
+				*(int *)get_field(rcd_ptr->value, "min_rsize") = ((*(int *)get_field(rcd_ptr->value, "min_rsize")) && size > *(int *)get_field(rcd_ptr->value, "min_rsize")) ?
+					*(int *)get_field(rcd_ptr->value, "min_rsize") : size;
 
 				rtime = *(int *)get_field(rcd_ptr->value, "r_time");
 				tmp_sum_size = (*(int *)get_field(rcd_ptr->value, "avg_rsize")) * rtime;
@@ -164,6 +165,9 @@ int main(int argc, char* argv[])
 	strcat(dp_f_name, ".db");
 
 	blk_db->dump(dp_f_name);
+	blk_db->nodes_number();
+//	printf("%s:",argv[1]);
+//	blk_db->travel_rbt_pr();
 	
 	delete blk_db;
 	fclose(fp);
