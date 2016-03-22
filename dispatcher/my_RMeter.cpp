@@ -2,17 +2,15 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include "my_RMeter.h"
-
-
+#include "do_aio.hpp"
 
 global_args G_args;
 static const char *opt_str = "t:o:d:h?";//static & const.
 
-
-void usage(void)
-{
-	printf("fuck RMeter @ywj\n");
-	printf("usage: %s -t trace_file_name [-o result_file_name] -d device_name\n", G_args.executable_name);
+void display_usage(void){
+	printf("light weight RaidMeter @ywj\n");
+	printf("usage: %s -t <trace_file_name> [-o <result_file_name>] -d <device_name>\n", G_args.executable_name);
+	exit(EXIT_FAILURE);
 }
 
 void do_args(int argc, char* argv[])//[this version] the args don't support long format.
@@ -28,18 +26,19 @@ void do_args(int argc, char* argv[])//[this version] the args don't support long
 			case 'd'://-d device_name
 				G_args.dev_name = optarg;break;
 			case 'h'://-h
-			case '?'://error will get here.
-				usage();break;
-			default :
+			case '?'://if error, will get here.
+				display_usage();break;
+			default ://acctually you won't get here.
 				break;
 		}
 	}
-	
+	check_global_args(&G_args);
 }
 
 
 int main(int argc, char* argv[])
 {
 	do_args(argc, argv);
+	perform_ios(G_args.dev_name);
 	return 0;
 }
