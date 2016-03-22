@@ -135,7 +135,7 @@ int main(int argc,char **argv)
 		exit(0);
 	}
 	argc--;
-	for(i=1; i<argc; i++)
+	for(i=1; i<argc; i++)/*this can be processed by getopt() */
 	{
 		if(argv[i][0]=='-')
 		{
