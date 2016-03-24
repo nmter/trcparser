@@ -6,6 +6,8 @@ double escape_time;//in seconds.
 ULL io_num = 0;
 double avg_read_size = 0, avg_write_size = 0;
 ULL read_num = 0, write_num = 0;
+int max_size = -1;
+
 
 void help()
 {
@@ -58,6 +60,10 @@ int msr_parseIO(FILE *fp)//get <filetime, rw, size>
 		start_time = time;
 	}
 	update_avg_size(size, rw);
+	if(size > max_size){
+		max_size = size;
+	}
+	
 	return 0;
 }
 
@@ -83,8 +89,9 @@ int main(int argc, char *argv[])
 //		io_num / escape_time, io_num, read_num, write_num, avg_read_size, avg_write_size);
 //0
 	printf("%s:",argv[1]);
-	printf("%0.2lf:%llu:%llu:%llu:%0.2lf:%0.2lf\n",
-		io_num / escape_time, io_num, read_num, write_num, avg_read_size/1024, avg_write_size/1024);//in KB
+//	printf("%0.2lf:%llu:%llu:%llu:%0.2lf:%0.2lf\n",
+//		io_num / escape_time, io_num, read_num, write_num, avg_read_size/1024, avg_write_size/1024);//in KB
+	printf("%d\n", max_size);
 	fclose(fp);	
 	return 0;
 }

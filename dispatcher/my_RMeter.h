@@ -1,24 +1,80 @@
 #ifndef MY_RMETER_H
 #define MY_RMETER_H
+#define MAX_TRC_COUNT 10000
+#define MAX_DEV_NUM 4
+
+#include <sys/time.h>
+#include <aio.h>
+#include <string.h>
+#include "trc_stat.h"
+
+struct aio_data{
+	double io_issue_time;
+	double io_complete_time;
+	struct aiocb64 *aio_cb_ptr;
+}aio_data;
+	
+
+
 typedef struct global_args{
 	const char* trace_file_name;
 	const char* result_file_name;
 	const char* executable_name;
 	const char* dev_name;
+	const char* dev_names[MAX_DEV_NUM];
+	
+	double start_time;
+	
+	void *aio_buf;
+	
+	
+	struct aiocb64 aio_cb_l[MAX_TRC_COUNT];
+	struct aio_data aio_data_l[MAX_TRC_COUNT];
+	
+	int rate;
+	
+	int MultiCS;
 }global_args;
 
 //#define EXIT_FAILURE -1 redefine in stdlib.h:133
 void display_usage(void);
 void do_args(int argc, char* argv[]);
 
+double get_time(void)
+{
+	struct	timeval	mytime;
+	gettimeofday(&mytime,NULL);
+	return (mytime.tv_sec*1.0+mytime.tv_usec/1000000.0);
+}
 
+void initialize_g_aio_buf(global_args *g){
+	int aio_buf_size_in_bytes;
+	for(int i = 0; i < sizeof(Traces_Stat_Max_Sizes)/sizeof(struct trc_stat); i++){
+		if(strcmp(g->trace_file_name, Traces_Stat_Max_Sizes[i].name) == 0){
+			aio_buf_size_in_bytes = Traces_Stat_Max_Sizes[i].max_size;
+			break;
+		}
+	}
+	g->aio_buf = malloc(aio_buf_size_in_bytes * sizeof(char) + 1);//aio_buf_size_in_bytes is max size of io.
+}
+
+void release_g_aio_buf(global_args *g){
+	free(g->aio_buf);
+}
 
 void initialze_global_args(global_args *g, char* argv[]){
 	g->executable_name = argv[0];
+	
 	g->result_file_name = g->dev_name = g->trace_file_name = NULL;
+	g->start_time = get_time();
+	g->rate = 1;
+	g->MultiCS = 0;//Multi chunk size
+	for(int i = 0; i < MAX_DEV_NUM; i++){
+		g->dev_names[i] = NULL;
+	}
 }
 
-void check_global_args(global_args *g){
+void check_global_args(global_args *g){//for full-version
 	const char *err_info_name[] = {"trace_file_name", "dev_name"};
 	int err_catch[] = {0,0};
 	int err_num = 0;
