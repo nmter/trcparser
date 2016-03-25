@@ -1,6 +1,6 @@
 #ifndef MY_RMETER_H
 #define MY_RMETER_H
-#define MAX_TRC_COUNT 10000
+#define MAX_TRC_COUNT 1000000
 #define MAX_DEV_NUM 4
 
 #include <sys/time.h>
@@ -12,6 +12,8 @@ struct aio_data{
 	double io_issue_time;
 	double io_complete_time;
 	struct aiocb64 *aio_cb_ptr;
+	int aio_idx;
+	int io_idx;
 }aio_data;
 	
 
@@ -30,7 +32,7 @@ typedef struct global_args{
 	
 	struct aiocb64 aio_cb_l[MAX_TRC_COUNT];
 	struct aio_data aio_data_l[MAX_TRC_COUNT];
-	
+	unsigned long long io_num;
 	int rate;
 	
 	int MultiCS;
@@ -64,15 +66,15 @@ void release_g_aio_buf(global_args *g){
 
 void initialze_global_args(global_args *g, char* argv[]){
 	g->executable_name = argv[0];
-	
+	g->io_num = 0;
 	g->result_file_name = g->dev_name = g->trace_file_name = NULL;
-	g->start_time = get_time();
 	g->rate = 1;
 	g->MultiCS = 0;//Multi chunk size
 	for(int i = 0; i < MAX_DEV_NUM; i++){
 		g->dev_names[i] = NULL;
 	}
 }
+
 
 void check_global_args(global_args *g){//for full-version
 	const char *err_info_name[] = {"trace_file_name", "dev_name"};
@@ -94,6 +96,15 @@ void check_global_args(global_args *g){//for full-version
 		printf("can't be null. %d args error found.\n", err_num);
 		display_usage();
 	}
-
+#ifdef DBG
+	printf("trace_file_name: %s, rate: %d, MultiCS: %d, dev(s):",
+		g->trace_file_name, g->rate, g->MultiCS);
+	if(g->MultiCS){
+		printf("%s %s", g->dev_names[0], g->dev_names[1]);
+	}else{
+		printf("%s", g->dev_name);
+	}
+	printf("\n");
+#endif
 }
 #endif

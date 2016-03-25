@@ -66,7 +66,8 @@ int msr_toIOblks(LARGENUM *ofs, int size, char rw)
 	blk_num = size / BLKSIZE;//blk num.
 //	printf("%d %d\n", blk_num, size);
 	blks_sum += blk_num;
-
+	
+	blk_id = blk_id >> 9;
 //	printf("insert %d blks.\n", blk_num);
 	while(blk_num){
 		//printf("%llu\n", blk_id);
