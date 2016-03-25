@@ -12,7 +12,7 @@ global_args G_args;
 
 //static const char *opt_str = "t:o:d:h?";//static & const.
 
-static const char *opt_str = "t:r:Xh?";//static & const.
+static const char *opt_str = "t:r:m:Xh?";//static & const.
 
 static const char *dev_name = "/dev/md0";//single chunk 
 
@@ -21,11 +21,11 @@ static const char *dev_name1 = "/dev/md1";//larger
 
 void display_usage(void){
 	printf("light weight RaidMeter @ywj\n");
-//	printf("usage: %s -t <trace_file_name> [-o <result_file_name>] -d <device_name>\n", G_args.executable_name);
-	printf("usages: %s -t <trace_file_name> [-r <rate = 1>] [-X]\n", G_args.executable_name);
+	printf("usages: %s -t <trace_file_name> [-r <rate = 1>] [-X] [-m <minutes>]\n", G_args.executable_name);
 	printf("\t\t-t <trace_file_name> the input MSR trace file.\n");
 	printf("\t\t-r <rate> to be faster running trace in <rate> times.\n");
 	printf("\t\t-X run trace in MultiCS mode.\n");
+	printf("\t\t-m <minutes> test last for <minutes> minutes.\n");
 	exit(EXIT_FAILURE);
 }
 
@@ -48,7 +48,8 @@ void do_args(int argc, char* argv[])//[this version] the args don't support long
 //				G_args.dev_name = optarg;break;
 			case 'r':
 				G_args.rate = atoi(optarg);break;
-				
+			case 'm':
+				G_args.mins = atoi(optarg);break;
 			case 'X':
 				G_args.MultiCS = 1;break;
 			case 'h'://-h

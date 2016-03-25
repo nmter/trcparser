@@ -37,11 +37,17 @@ double avg_response_time = 0;
 int avg_response_time_i = 0;
 int end_flag = 0;
 ULL io_num = 0;
+
 double check_time(global_args *g)
 {
-	double escape_time;
+	double escape_time, escape_time2 = -1;
+	int next_io_idx = -1;
 	for(int i = 0; i < g->io_num; i++){
 		escape_time = g->aio_data_l[i].io_complete_time - g->aio_data_l[i].io_issue_time;
+		for(int j = i + 1; g->aio_data_l[j].io_idx != 0 && g->aio_data_l[j].io_idx == g->aio_data_l[i].io_idx; j++){
+			escape_time2 = g->aio_data_l[j].io_complete_time - g->aio_data_l[j].io_issue_time;
+			escape_time = escape_time > escape_time2 ? escape_time : escape_time2 ;
+		}
 		if(escape_time > 0){
 			avg_response_time_i++;
 			avg_response_time = avg_response_time + (escape_time - avg_response_time) / avg_response_time_i;	
@@ -176,7 +182,7 @@ int issue_io(_msr_io_desc *msr_io, global_args *G_args,int io_idx, int fd){
 
 
 int issue_io_MultiCS(_msr_io_desc *msr_io, global_args *G_args,int io_idx, int fd0, int fd1){//possibly multi blocks 
-	struct aio_data *this_data_ptr = G_args->aio_data_l + io_idx, *this_data_ptr_l;
+	struct aio_data *this_data_ptr = G_args->aio_data_l + io_idx, *this_data_ptr_l, *tmp2;
 	struct aiocb64 *this_aiocb_ptr = G_args->aio_cb_l + io_idx, *this_aiocb_ptr_l, *tmp;
 	
 	_aio_desc desc = {0, 0, 0};
@@ -222,10 +228,12 @@ int issue_io_MultiCS(_msr_io_desc *msr_io, global_args *G_args,int io_idx, int f
 					desc.aio_ofs = ((struct value_t*)rptr->value)->ofs = new_ofs_01;
 					new_ofs_01 += desc.nbytes;
 					new_ofs_01 += new_ofs_01 % 4096 ?(4096 - new_ofs_01 % 4096) : 0;
+					_update_ofss_remain(l_idx + 1, desc.nbytes, ((struct value_t*)rptr->value)->ofs);
 				}else{
 					desc.aio_ofs = ((struct value_t*)rptr->value)->ofs = new_ofs_00;
 					new_ofs_00 += desc.nbytes;
 					new_ofs_00 += new_ofs_00 % 4096 ?(4096 - new_ofs_00 % 4096) : 0;
+					_update_ofss_remain(l_idx + 1, desc.nbytes, ((struct value_t*)rptr->value)->ofs);
 				}
 			}else{
 				desc.aio_ofs = ((struct value_t*)rptr->value)->ofs;
@@ -279,15 +287,16 @@ int issue_io_MultiCS(_msr_io_desc *msr_io, global_args *G_args,int io_idx, int f
 	//issue
 	
 		if(msr_io->rw == 'R'){
-			for(tmp = this_aiocb_ptr_l; tmp < this_aiocb_ptr; tmp++){
+			for(tmp = this_aiocb_ptr_l, tmp2 = this_data_ptr_l; tmp < this_aiocb_ptr; tmp++, tmp2++){
+				tmp2->io_issue_time = get_time();
 				aio_read64(tmp);
 			}
 		}else{
-			for(tmp = this_aiocb_ptr_l; tmp < this_aiocb_ptr; tmp++){
+			for(tmp = this_aiocb_ptr_l, tmp2 = this_data_ptr_l; tmp < this_aiocb_ptr; tmp++, tmp2++){
+				tmp2->io_issue_time = get_time();
 				aio_write64(tmp);
 			}		
 		}
-	
 	
 	return n_aios;
 }
@@ -439,14 +448,14 @@ void perform_ios(global_args *G_args)
 	
 	while(get_msr_io(fp, &msr_io) == TRACE_RECIEVED && io_num < MAX_TRC_COUNT){
 		//a msr IO ==> a aio or more.
-		if(MAX_IO_TIME > 0 && get_time() - G_args->start_time > MAX_IO_TIME)
+		if(get_time() - G_args->start_time > (double)G_args->mins * 60)
 			break;
 		
 		if(io_num == 0){
 			msr_start_time = msr_io.ftime;
 		}
 		
-		msr_escape_time = (msr_io.ftime - msr_start_time) / (double)10000000;
+		msr_escape_time = (msr_io.ftime - msr_start_time) / (double)10000000 / (double)G_args->rate;//take rate into consider.
 		while(get_time() - G_args->start_time < msr_escape_time){
 			//just waiting & asking time. other way to do this ?
 		};

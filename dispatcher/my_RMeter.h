@@ -34,7 +34,7 @@ typedef struct global_args{
 	struct aio_data aio_data_l[MAX_TRC_COUNT];
 	unsigned long long io_num;
 	int rate;
-	
+	int mins;
 	int MultiCS;
 }global_args;
 
@@ -50,13 +50,16 @@ double get_time(void)
 }
 
 void initialize_g_aio_buf(global_args *g){
-	int aio_buf_size_in_bytes;
+	int aio_buf_size_in_bytes = 40960;
 	for(int i = 0; i < sizeof(Traces_Stat_Max_Sizes)/sizeof(struct trc_stat); i++){
 		if(strcmp(g->trace_file_name, Traces_Stat_Max_Sizes[i].name) == 0){
 			aio_buf_size_in_bytes = Traces_Stat_Max_Sizes[i].max_size;
 			break;
 		}
 	}
+#ifdef DBG
+	printf("aio buf size: %d\n", aio_buf_size_in_bytes);
+#endif
 	g->aio_buf = malloc(aio_buf_size_in_bytes * sizeof(char) + 1);//aio_buf_size_in_bytes is max size of io.
 }
 
@@ -69,6 +72,7 @@ void initialze_global_args(global_args *g, char* argv[]){
 	g->io_num = 0;
 	g->result_file_name = g->dev_name = g->trace_file_name = NULL;
 	g->rate = 1;
+	g->mins = 30;
 	g->MultiCS = 0;//Multi chunk size
 	for(int i = 0; i < MAX_DEV_NUM; i++){
 		g->dev_names[i] = NULL;
